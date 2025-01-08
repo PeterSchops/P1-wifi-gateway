@@ -27,7 +27,7 @@
 
 #include <Arduino.h>
 
-#define VERSION "1.03"
+#define VERSION "1.04"
 #define HOSTNAME "P1meter"
 
 #define CLIENTNAMESIZE 32
@@ -70,7 +70,7 @@ struct settings
 };
 
 #ifndef LANGUAGE
-  #error "LANGUAGE n'est pas défini. Veuillez définir LANGUAGE dans GlobalVar.h"
+  #error "LANGUAGE is not defined. Please define LANGUAGE in GlobalVar.h"
 #endif
 
 #include "Langues/1-French.h"
@@ -78,6 +78,6 @@ struct settings
 #include "Langues/3-Dutch.h"
 
 #ifndef LANG_LOADED
-  #error "LANGUAGE n'a pas une valeur valide"
+  #error "LANGUAGE does not have a valid value"
 #endif
 #endif
