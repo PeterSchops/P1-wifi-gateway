@@ -33,14 +33,13 @@ void WifiMgr::DoMe()
     
     MainSendDebugPrintf("[WIFI][Connected:%s] Event %s -> %s", (WiFi.isConnected())? "Y" : "N", StatusIdToString(tmp).c_str(), StatusIdToString(LastStatusEvent).c_str());
 
-    if (LastStatusEvent == WL_NO_SSID_AVAIL)
-    {
+    if (LastStatusEvent == WL_NO_SSID_AVAIL) {
       Connect(); // on relance les tentatives
       return;
     }
 
-    if (DelegateWifiChange != nullptr)
-    { // Que si quelqu'un ecoute l'event
+    if (DelegateWifiChange != nullptr) { 
+      // That if someone listens to the event
       DelegateWifiChange(WiFi.isConnected(), tmp, LastStatusEvent);
     }
   }
@@ -48,13 +47,13 @@ void WifiMgr::DoMe()
   if (AsAP() && (millis() - LastScanSSID) > INTERVAL_SCAN_SSID_MS && conf.ssid[0] != '\0')
   {
     LastScanSSID = millis();
-    //en mode AP, scan les SSID pour savoir si il peut se connecter seulement si un SSID est donné
-    if (FindThesSSID())
-    {
+    //in AP mode, scan SSIDs to see if it can connect only if an SSID is given
+    if (FindThesSSID()) {
       Reconnect();
     }
   }
 }
+
 String WifiMgr::CurrentIP()
 {
   return WiFi.localIP().toString();
@@ -64,20 +63,17 @@ bool WifiMgr::FindThesSSID()
 {
   MainSendDebugPrintf("[WIFI] Looking for : %s", conf.ssid);
   
-  // Scan des réseaux WiFi
+  // Scanning WiFi networks
   int numNetworks = WiFi.scanNetworks();
 
-  if (numNetworks == 0)
-  {
+  if (numNetworks == 0) {
     return false;
   }
 
-  // Parcourir la liste des réseaux WiFi
-  for (int i = 0; i < numNetworks; ++i)
-  {
-    // Vérifier si le réseau recherché est présent
-    if (strcmp(WiFi.SSID(i).c_str(), conf.ssid) == 0)
-    {
+  // Browse the list of WiFi networks
+  for (int i = 0; i < numNetworks; ++i) {
+    // Check if the desired network is present
+    if (strcmp(WiFi.SSID(i).c_str(), conf.ssid) == 0) {
       return true;
     }
   }
@@ -86,7 +82,7 @@ bool WifiMgr::FindThesSSID()
 }
 
 
-/// @brief Traduit l'id de status en string
+/// @brief Translates status id to string
 /// @param status
 /// @return
 String WifiMgr::StatusIdToString(wl_status_t status)
@@ -149,6 +145,7 @@ void WifiMgr::Connect()
     MainSendDebugPrintf("[WIFI] Connect to '%s'", conf.ssid);
     WiFi.mode(WIFI_STA);
     WiFi.disconnect();
+    WiFi.hostname(HOSTNAME);
     WiFi.begin(conf.ssid, conf.password);
 
     byte tries = 0;
@@ -165,10 +162,8 @@ void WifiMgr::Connect()
     }
 
     // if connected to wifi's user
-    if (WiFi.getMode() == WIFI_STA && WiFi.status() == WL_CONNECTED)
-    {
-      WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected &event)
-      {
+    if ((WiFi.getMode() == WIFI_STA) && (WiFi.status() == WL_CONNECTED)) {
+      WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected &event) {
         MainSendDebugPrintf("[WIFI] Perte de communication : %s", event.reason);
       });
       WiFi.setAutoReconnect(true);
@@ -177,8 +172,7 @@ void WifiMgr::Connect()
       digitalWrite(LED_BUILTIN, LED_OFF);
     }
   }
-  else
-  {
+  else {
     SetAPMod();
   }
 }
@@ -187,14 +181,13 @@ void WifiMgr::Reconnect()
 {
   MainSendDebugPrintf("[WIFI] Trying to Reconnect to '%s' wifi network", conf.ssid);
   WiFi.mode(WIFI_STA);
+  WiFi.hostname(HOSTNAME);
   WiFi.begin(conf.ssid, conf.password);
   byte tries = 0;
-  while (WiFi.status() != WL_CONNECTED)
-  {
+  while (WiFi.status() != WL_CONNECTED) {
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     Yield_Delay(300);
-    if (tries++ < 30)
-    {
+    if (tries++ < 30) {
       MainSendDebugPrintf("[WIFI] Can't connect to '%s' !", conf.ssid);
       SetAPMod();
       return;
@@ -206,6 +199,7 @@ bool WifiMgr::IsConnected()
 {
   return WiFi.isConnected();
 }
+
 void WifiMgr::SetAPMod()
 {
   digitalWrite(LED_BUILTIN, LED_ON);
@@ -216,8 +210,8 @@ void WifiMgr::SetAPMod()
   APtimer = millis();
 }
 
-/// @brief Si il diffuse son propre AP et non connecté a un Wifi
-/// @return True si c'est en mode AP
+/// @brief If it broadcasts its own AP and not connected to a Wifi
+/// @return True if it is in AP mode
 bool WifiMgr::AsAP()
 {
   return (WiFi.getMode() != WIFI_STA);
@@ -227,14 +221,12 @@ void WifiMgr::setRFPower()
 {
   float newPower = CalcuAdjustWiFiPower();
   
-  if (newPower == -1)
-  {
+  if (newPower == -1) {
     return; //not connected or error
   }
 
-  // N'applique le changement que si la différence est significative
-  if (currentPowerWifi == -1 || abs(currentPowerWifi - newPower) >= HYSTERESIS_CORRECTION_POWER)
-  {
+  // Only apply the change if the difference is significant
+  if ((currentPowerWifi == -1) || (abs(currentPowerWifi - newPower) >= HYSTERESIS_CORRECTION_POWER)) {
     WiFi.setOutputPower(currentPowerWifi);
     currentPowerWifi = newPower;
   }
@@ -242,8 +234,7 @@ void WifiMgr::setRFPower()
 
 float WifiMgr::CalcuAdjustWiFiPower()
 {
-  if (WiFi.status() != WL_CONNECTED)
-  {
+  if (WiFi.status() != WL_CONNECTED) {
     return -1;
   }
 
@@ -251,23 +242,19 @@ float WifiMgr::CalcuAdjustWiFiPower()
   float newPower;
   
   // Protection contre les valeurs RSSI invalides
-  if (rssi >= 0)
-  {
+  if (rssi >= 0) {
     return -1;
   }
   
-  if (rssi > -50)
-  {
+  if (rssi > -50) {
     // Signal fort : puissance minimale
     newPower = 0;
   }
-  else if (rssi < -80)
-  {
+  else if (rssi < -80) {
     // Signal faible : puissance maximale
     newPower = 20.5;
   }
-  else 
-  {
+  else {
     // Entre -50 et -80 : adaptation linéaire
     // Convertit -80~-50 en 0~20.5
     newPower = ((-rssi - 50) * 20.5) / 30;
