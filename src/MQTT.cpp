@@ -29,28 +29,23 @@ MQTTMgr::MQTTMgr(settings &currentConf, WifiMgr &currentLink, P1Reader &currentP
 {
   mqtt_connect();
 
-  WifiClient.OnWifiEvent([this](bool b, wl_status_t s1, wl_status_t s2)
-  {
-    if (b)
-    {
+  WifiClient.OnWifiEvent([this](bool b, wl_status_t s1, wl_status_t s2) {
+    if (b) {
       nextMQTTreconnectAttempt = 0;
       mqtt_connect();
     }
   });
 
-  DataReaderP1.OnNewDatagram([this]()
-  {
+  DataReaderP1.OnNewDatagram([this]() {
     MQTT_reporter();
   });
 
-  // Configuration des callbacks MQTT
-  mqtt_client.onConnect([this](bool sessionPresent)
-  {
+  // Configuring MQTT callbacks
+  mqtt_client.onConnect([this](bool sessionPresent) {
     onMqttConnect(sessionPresent);
   });
   
-  mqtt_client.onDisconnect([this](AsyncMqttClientDisconnectReason reason)
-  {
+  mqtt_client.onDisconnect([this](AsyncMqttClientDisconnectReason reason) {
     onMqttDisconnect(reason);
   });
 }
@@ -61,8 +56,7 @@ void MQTTMgr::onMqttDisconnect(AsyncMqttClientDisconnectReason reason)
   CountError++;
   MainSendDebugPrintf("[MQTT] Disconnected (%u)", reason);
 
-  if (CountError >= MAXERROR)
-  {
+  if (CountError >= MAXERROR) {
     MainSendDebug("[MQTT] Max error to connect, reset MQTT client");
     mqtt_client.disconnect(true);
     mqtt_client.clearQueue();
@@ -96,18 +90,15 @@ void MQTTMgr::stop()
 
 bool MQTTMgr::mqtt_connect()
 {
-  if (mqtt_client.connected())
-  {
+  if (mqtt_client.connected()) {
     return true;
   }
 
-  if (_state != CONNECTING && millis() > nextMQTTreconnectAttempt)
-  {
+  if ((_state != CONNECTING) && (millis() > nextMQTTreconnectAttempt)) {
     MainSendDebugPrintf("[MQTT] connect to %s:%u ...", conf.mqttIP, conf.mqttPort);
 
     //Setting connection
-    if (strlen(conf.mqttUser) != 0 && strlen(conf.mqttPass) != 0)
-    {
+    if (strlen(conf.mqttUser) != 0 && strlen(conf.mqttPass) != 0) {
       mqtt_client.setCredentials(conf.mqttUser, conf.mqttPass);
     }
     mqtt_client.setServer(conf.mqttIP, conf.mqttPort);
@@ -152,57 +143,51 @@ void MQTTMgr::send_uint32_t(String name, uint32_t metric)
 /// @param payload 
 void MQTTMgr::send_msg(const char *topic, const char *payload)
 {
-    if (!mqtt_client.connected())
-    {
-      mqtt_connect();
-    }
+  if (!mqtt_client.connected()) {
+    mqtt_connect();
+  }
 
-    if (payload[0] == 0)
-    {
-      return; //nothing to report
-    }
-    mqtt_client.publish(topic, 2, true, payload);
+  if (payload[0] == 0) {
+    return; //nothing to report
+  }
+  mqtt_client.publish(topic, 2, true, payload);
 }
 
 char* MQTTMgr::uint32ToChar(uint32_t value, char* buffer)
 {
-    char* p = buffer;
+  char* p = buffer;
     
-    if (value == 0)
-    {
-        *p++ = '0';
-        *p = '\0';
-        return buffer;
-    }
-    
-    // On divise par 10 et on convertit de droite à gauche
-    char* start = p;
-    while (value)
-    {
-        *p++ = '0' + (value % 10);
-        value /= 10;
-    }
+  if (value == 0) {
+    *p++ = '0';
     *p = '\0';
-    
-    // On inverse la chaîne
-    char* end = p - 1;
-    while (start < end)
-    {
-        char temp = *start;
-        *start = *end;
-        *end = temp;
-        start++;
-        end--;
-    }
-    
     return buffer;
+  }
+    
+  // We divide by 10 and convert from right to left
+  char* start = p;
+  while (value) {
+    *p++ = '0' + (value % 10);
+    value /= 10;
+  }
+  *p = '\0';
+    
+  // We reverse the chain
+  char* end = p - 1;
+  while (start < end) {
+    char temp = *start;
+    *start = *end;
+    *end = temp;
+    start++;
+    end--;
+  }
+    
+  return buffer;
 }
 
 void MQTTMgr::SendDebug(String payload)
 {
-  if (conf.debugToMqtt && mqtt_client.connected())
-  {
-    char charArray[payload.length() + 1]; // +1 pour le caractère nul
+  if (conf.debugToMqtt && mqtt_client.connected()) {
+    char charArray[payload.length() + 1]; // +1 for the null character
     payload.toCharArray(charArray, sizeof(charArray));
     charArray[sizeof(charArray) - 1] = '\0';
     send_char("State/Logging", charArray);
@@ -211,9 +196,8 @@ void MQTTMgr::SendDebug(String payload)
 
 void MQTTMgr::MQTT_reporter()
 {
-  if (!DataReaderP1.dataEnd)
-  {
-    //Pas de donnée valide a envoyer
+  if (!DataReaderP1.dataEnd) {
+    //No valid data to send
     return;
   }
 
@@ -242,8 +226,9 @@ void MQTTMgr::MQTT_reporter()
   send_float("reading/phase_voltage_l2", DataReaderP1.DataReaded.instantaneousVoltageL2);
   send_float("reading/phase_voltage_l3", DataReaderP1.DataReaded.instantaneousVoltageL3);
 
-  send_char("consumption/gas/delivered", DataReaderP1.DataReaded.gasReceived5min);
-  
+  send_float("consumption/gas/delivered", DataReaderP1.DataReaded.gasReceived5min);
+  send_float("consumption/water/delivered", DataReaderP1.DataReaded.waterReceived5min);
+
   send_char("meter-stats/dsmr_version", DataReaderP1.DataReaded.P1version);
   send_uint32_t("meter-stats/electricity_tariff", DataReaderP1.DataReaded.tariffIndicatorElectricity);
   send_uint32_t("meter-stats/power_failure_count", DataReaderP1.DataReaded.numberLongPowerFailuresAny);
