@@ -22,7 +22,6 @@
  * Ronald Leenes (https://github.com/romix123/P1-wifi-gateway and http://esp8266thingies.nl)
  */
 
-#define FRENCH // NEDERLANDS,SWEDISH,GERMAN,FRENCH
 //#define DEBUG_SERIAL_P1
 
 #define MAXBOOTFAILURE 3 //reset setting if boot fail more than this
@@ -66,53 +65,43 @@ void MainSendDebug(const char *payload)
   Serial.println(payload);
   #endif
   
-  if (MQTTClient != nullptr)
-  {
-    MQTTClient->SendDebug(payload);
-  }
-  if (TelnetServer != nullptr)
-  {
-    TelnetServer->SendDebug(payload);
-  }
+  if (  MQTTClient != nullptr) {   MQTTClient->SendDebug(payload); }
+  if (TelnetServer != nullptr) { TelnetServer->SendDebug(payload); }
 }
 
 void MainSendDebugPrintf(const char *format, ...)
 {
-    const int initialBufferSize = 128;
-    const int maxBufferSize = 1024;
-    char* buffer = nullptr;
-    int bufferSize = initialBufferSize;
-    int length = 0;
-    va_list args;
+  const int initialBufferSize = 128;
+  const int maxBufferSize = 1024;
+  char* buffer = nullptr;
+  int bufferSize = initialBufferSize;
+  int length = 0;
+  va_list args;
 
-    do
-    {
-        delete[] buffer;  // Safe to call on nullptr in first iteration
-        buffer = new char[bufferSize];
+  do {
+    delete[] buffer;  // Safe to call on nullptr in first iteration
+    buffer = new char[bufferSize];
         
-        va_start(args, format);
-        length = vsnprintf(buffer, bufferSize, format, args);
-        va_end(args);
+    va_start(args, format);
+    length = vsnprintf(buffer, bufferSize, format, args);
+    va_end(args);
 
-        if (length < 0)
-        {
-            delete[] buffer;
-            return;
-        }
+    if (length < 0) {
+      delete[] buffer;
+      return;
+    }
 
-        if (length >= bufferSize)
-        {
-            bufferSize *= 2;  // Double the buffer size
-            if (bufferSize > maxBufferSize)
-            {
-                delete[] buffer;
-                return;
-            }
-        }
-    } while (length >= bufferSize);
+    if (length >= bufferSize) {
+      bufferSize *= 2;  // Double the buffer size
+      if (bufferSize > maxBufferSize) {
+        delete[] buffer;
+        return;
+      }
+    }
+  } while (length >= bufferSize);
 
-    MainSendDebug(buffer);
-    delete[] buffer;
+  MainSendDebug(buffer);
+  delete[] buffer;
 }
 
 /// @brief Non-blocking delay using yield() to yield control back to the CPU.
@@ -121,21 +110,19 @@ void Yield_Delay(unsigned long ms)
 {
   unsigned long WaitUnitl = millis() + ms;
 
-  while(millis() <= WaitUnitl)
-  {
+  while(millis() <= WaitUnitl) {
     yield();
   }
 }
 
 
-/// @brief Permet de faire clignoter LED_BUILTIN via un toggle
-/// @param t Nombre de clignotement
-/// @param speed Vitesse de clignotement (onde carrée)
+/// @brief Allows to flash LED_BUILTIN via toggle
+/// @param t Number of flashes
+/// @param speed Flashing speed (square wave)
 void blink(int t, unsigned long speed)
 {
   t = t * 2;
-  for (int i = 0; i <= t; i++)
-  {
+  for (int i = 0; i <= t; i++) {
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     delay(speed);
   }
@@ -166,32 +153,32 @@ void PrintConfigData()
 }
 #endif
 
-/// @brief Génération du nom unique se reposant sur HOSTNAME et les 4 octets finaux de l'adresse MAC
+/// @brief Unique name generation based on HOSTNAME and the final 4 bytes of the MAC address
 void SetName()
 {
-    const u_int8_t macLen = 17;
-    char macAddr[18]; // 18 caractères pour inclure l'octet nul
+  const u_int8_t macLen = 17;
+  char macAddr[18]; // 18 characters to include the null byte
 
-    // Obtenir l'adresse MAC et la copier dans le tableau
-    strncpy(macAddr, WiFi.macAddress().c_str(), sizeof(macAddr) - 1);
-    strcpy(clientName, HOSTNAME);
-    strcat(clientName, "-");
+  // Get the MAC address and copy it into the table
+  strncpy(macAddr, WiFi.macAddress().c_str(), sizeof(macAddr) - 1);
+  strcpy(clientName, HOSTNAME);
+  strcat(clientName, "-");
     
-    // Pointer vers le début des 2 derniers groupes (position -5:-2 et -2:fin)
-    const char* macStr = macAddr;
+  // Point to the start of the last 2 groups (position -5:-2 and -2:end)
+  const char* macStr = macAddr;
     
-    // Copie les 2 derniers octets sans les ':'
-    char lastBytes[5];
-    lastBytes[0] = macStr[macLen-5];
-    lastBytes[1] = macStr[macLen-4];
-    lastBytes[2] = macStr[macLen-2];
-    lastBytes[3] = macStr[macLen-1];
-    lastBytes[4] = '\0';
+  // Copy the last 2 bytes without the ':'
+  char lastBytes[5];
+  lastBytes[0] = macStr[macLen-5];
+  lastBytes[1] = macStr[macLen-4];
+  lastBytes[2] = macStr[macLen-2];
+  lastBytes[3] = macStr[macLen-1];
+  lastBytes[4] = '\0';
     
-    strcat(clientName, lastBytes);
+  strcat(clientName, lastBytes);
 }
 
-/// @brief Obtenir le nom unique se reposant sur HOSTNAME et les 4 octets finaux de l'adresse MAC
+/// @brief Get the unique name based on HOSTNAME and the final 4 bytes of the MAC address
 /// @return 
 char* GetClientName()
 {
@@ -218,15 +205,12 @@ void setup()
   EEPROM.begin(sizeof(struct settings));
   EEPROM.get(0, config_data);
 
-  // Si la version de la configuration n'est celle attendu, on reset !
-  if (config_data.ConfigVersion != SETTINGVERSION || config_data.BootFailed >= MAXBOOTFAILURE)
-  {    
-    if (config_data.ConfigVersion != SETTINGVERSION)
-    {
+  // If the configuration version is not the expected one, we reset!
+  if ((config_data.ConfigVersion != SETTINGVERSION) || (config_data.BootFailed >= MAXBOOTFAILURE)) {    
+    if (config_data.ConfigVersion != SETTINGVERSION) {
       MainSendDebugPrintf("[Core] Reset settings (wanted:%d actual:%d)", SETTINGVERSION, config_data.ConfigVersion);
     }
-    else
-    {
+    else {
       MainSendDebugPrintf("[Core] Too many boot fail (nbr:%d), Reset config !", config_data.BootFailed);
     }
 
@@ -235,8 +219,7 @@ void setup()
 
     config_data = (settings){SETTINGVERSION, 0, true, "", "", "10.0.0.3", 8084, 0, 0, "dsmr", "10.0.0.3", 1883, "", "", 60, false, false, false, false, false, false, "", "", false};
   }
-  else
-  {
+  else {
     config_data.BootFailed++;
   }
   
@@ -251,35 +234,31 @@ void setup()
   WifiClient = new WifiMgr(config_data);
   DataReaderP1 = new P1Reader(config_data);
 
-  if (config_data.telnet)
-  {
+  if (config_data.telnet) {
     TelnetServer = new TelnetMgr(config_data, *DataReaderP1);
   }
 
-  if (config_data.mqtt)
-  {
+  if (config_data.mqtt) {
     MQTTClient = new MQTTMgr(config_data, *WifiClient, *DataReaderP1);
   }
 
-  if (config_data.domo)
-  {
+  if (config_data.domo) {
     DomoClient = new DomoticzMgr(config_data, *DataReaderP1);
   }
   
   LogP1 = new LogP1Mgr(config_data, *DataReaderP1);
   HTTPClient = new HTTPMgr(config_data, *TelnetServer, *MQTTClient, *DataReaderP1, *LogP1);
 
-  blink(2, 500UL); // signale que le module est prêt !
+  blink(2, 500UL); // blink twice to signal that the module is ready!
 
   WifiClient->Connect();
   HTTPClient->start_webservices();
 }
 
-/// @brief Check la quantité de RAM disponible et reset si besoins le nombre d'erreur de boot
+/// @brief Check the amount of RAM available and reset the number of boot errors if necessary
 void doWatchDogs()
 {
-  if (ESP.getFreeHeap() < 2000) // watchdog, in case we still have a memery leak
-  {
+  if (ESP.getFreeHeap() < 2000) { // watchdog, in case we still have a memery leak
     MainSendDebug("[Core] FATAL : Memory leak !");
     ESP.reset();
   }
@@ -302,30 +281,22 @@ void loop()
   DataReaderP1->DoMe();
   HTTPClient->DoMe();
 
-  if (TelnetServer != nullptr)
-  {
+  if (TelnetServer != nullptr) {
     TelnetServer->DoMe();
   }
 
-  if (millis() > WatchDogsTimer)
-  {
+  if (millis() > WatchDogsTimer) {
     doWatchDogs();
   }
 }
 
-/// @brief Permet de demandé le redémarrage de l'ESP en prévenant les modules
-/// @param delay Durée avant le redémarrage en ms
+/// @brief Allows you to request the ESP restart by notifying the modules
+/// @param delay Time before restart in ms
 void RequestRestart(unsigned long delay)
 {
   MainSendDebug("[Core] Reboot requested !!!");
-  if (TelnetServer != nullptr)
-  {
-    TelnetServer->stop();
-  }
-  if (MQTTClient != nullptr )
-  {
-    MQTTClient->stop();
-  }
+  if (TelnetServer != nullptr) { TelnetServer->stop(); }
+  if (  MQTTClient != nullptr) {   MQTTClient->stop(); }
 
   Yield_Delay(delay);
   ESP.restart();
