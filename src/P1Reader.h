@@ -74,12 +74,13 @@ public:
 
   struct DataP1
   {
-    char gasReceived5min[12];
-    char gasDomoticz[12]; // Domoticz wil gas niet in decimalen?
+    FixedValue gasReceived5min;
+    FixedValue waterReceived5min;
     char P1version[8];
     char P1timestamp[13] = "\0";
-    char equipmentId[100] = "\0";
-    char equipmentId2[100] = "\0";
+    char equipmentId[100]  = "\0";//electricity
+    char equipmentId2[100] = "\0";//gas
+    char equipmentId3[100] = "\0";//water
     FixedValue electricityUsedTariff1;
     FixedValue electricityUsedTariff2;
     FixedValue electricityReturnedTariff1;
@@ -109,6 +110,8 @@ public:
     FixedValue activePowerL3NP;
     FixedValue actualElectricityPowerDeli;
     FixedValue actualElectricityPowerRet;
+    FixedValue activeEnergyActual;
+    FixedValue activeEnergyMaximumOfThisMonth;
   } DataReaded = {};
   void OnNewDatagram(std::function<void()> callback)
   {
