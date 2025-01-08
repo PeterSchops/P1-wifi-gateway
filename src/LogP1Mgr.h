@@ -36,7 +36,7 @@ class LogP1Mgr
 {
 public:
 
-  /// @brief Formatage et initiation de LittleFS
+  /// @brief Formatting and Starting LittleFS
   void format()
   {
     LittleFS.format();
@@ -60,18 +60,17 @@ public:
     //LittleFS.remove(FILENAME_LAST24H); // for debug
   }
 
-  /// @brief Conversion d'une chaîne hex en uint8_t
-  /// @param chaine Valeur à convertir
-  /// @return une valeur numérique non signé
+  /// @brief Converting a hex string to uint8_t
+  /// @param string Value to convert
+  /// @return an unsigned numeric value
   static uint8_t hexStringToUint8(const char* chaine)
   {
     uint8_t resultat = 0;
     int i = 0;
 
-    // On parcourt la chaîne de caractères jusqu'à rencontrer un caractère non numérique ou la fin de la chaîne
-    while (chaine[i] >= '0' && chaine[i] <= '9')
-    {
-      // On extrait le chiffre et on le multiplie par la puissance de 10 correspondante
+    // The string is traversed until a non-numeric character or the end of the string is encountered.
+    while (chaine[i] >= '0' && chaine[i] <= '9') {
+      // We extract the number and multiply it by the corresponding power of 10
       resultat = resultat * 10 + (chaine[i] - '0');
       i++;
     }
@@ -94,19 +93,17 @@ private:
 
 
   /// @brief 
-  /// @param FileName Permet de charger un fichier JSON
-  /// @param doc Le pointeur de l'élément où seront charger les données
-  /// @return True si le fichier est chargé, sinon, False
+  /// @param FileName Allows you to load a JSON file
+  /// @param doc The pointer to the element where the data will be loaded
+  /// @return True if the file is loaded, otherwise False
   bool loadJSON(const char *FileName, JsonDocument &doc)
   {
     File file = LittleFS.open(FileName, "r");
-    if(file)
-    {
+    if(file) {
       DeserializationError error = deserializeJson(doc, file);
       file.close();
       
-      if (!error)
-      {
+      if (!error) {
         return true;
       }
     }
@@ -115,21 +112,19 @@ private:
     return false;
   }
 
-  /// @brief Ouvre le fichier JSON et charge l'heure de la dernière mesure 
+  /// @brief Opens the JSON file and loads the time of the last measurement
   void prepareLogLast24H()
   {
     JsonDocument doc;
     char datetime[13];
     
     FileInitied = true;
-    if (!loadJSON(FILENAME_LAST24H, doc))
-    {
+    if (!loadJSON(FILENAME_LAST24H, doc)) {
       return;
     }
 
     JsonArray array = doc.as<JsonArray>();
-    if (array.isNull())
-    {
+    if (array.isNull()) {
       return;
     }
 
@@ -140,26 +135,24 @@ private:
   }
 
 
-  /// @brief Traitement d'une nouvelle mesure reçue
+  /// @brief Processing a new measurement received
   void newDataGram()
   {
     char charhour[2] = { DataReaderP1.DataReaded.P1timestamp[6], DataReaderP1.DataReaded.P1timestamp[7] };
     uint8_t hour = hexStringToUint8(charhour);
     
-    if (!FileInitied)
-    {
+    if (!FileInitied) {
       prepareLogLast24H();
     }
 
-    if (LastHourInLast24H == hour)
-    {
-      return; // on attend l'heure prochaine !
+    if (LastHourInLast24H == hour) {
+      return; // we're waiting for the next hour!
     }
 
     writeNewLineInLast24H();
   }
 
-  /// @brief Traitement du nouveau point et vérifie qu'il n'a pas trop de point dans le fichier JSON
+  /// @brief Processing the new point and checking that it does not have too many points in the JSON file
   void writeNewLineInLast24H()
   {
     MainSendDebug("[STKG] Write log for 24H");
@@ -167,13 +160,11 @@ private:
 
     loadJSON(FILENAME_LAST24H, Points);
 
-    if (Points.size() > 24)
-    {
+    if (Points.size() > 24) {
       u_int8_t NbrToRemove = Points.size() - 24;
 
       JsonDocument newDoc;
-      for (size_t i = NbrToRemove; i < Points.size(); i++)
-      {
+      for (size_t i = NbrToRemove; i < Points.size(); i++) {
         newDoc.add(Points[i]);
       }
 
@@ -184,8 +175,8 @@ private:
     addPointAndSave(Points);
   }
 
-  /// @brief Ajoute et sauvegarde le fichier de mesure
-  /// @param Points Les points de mesure actuel
+  /// @brief Add and save the measurement file
+  /// @param Points Current measurement points
   void addPointAndSave(JsonDocument Points)
   {
     JsonObject point = Points.add<JsonObject>();
@@ -199,7 +190,7 @@ private:
     serializeJson(Points, file);
     file.close();
     
-    //sauvegarde la derniére heure
+    //save last hour
     char charhour[2] = { DataReaderP1.DataReaded.P1timestamp[6], DataReaderP1.DataReaded.P1timestamp[7] };
     LastHourInLast24H = hexStringToUint8(charhour);
   }

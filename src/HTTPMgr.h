@@ -81,9 +81,9 @@ private:
   
   void ReplyOTA(bool success, const char* error, u_int ref);
 
-  bool UpdateResultFailed = false; // true = erreur d'update
-  String UpdateMsg; // Message d'erreur de la mise à jour
-  uint UpdateErrorCode = 0; //code d'erreur
+  bool UpdateResultFailed = false; // true = update error
+  String UpdateMsg; // Update error message
+  uint UpdateErrorCode = 0; //error code
 
   void handleP1();
 };

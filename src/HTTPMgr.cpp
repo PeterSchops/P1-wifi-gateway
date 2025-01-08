@@ -84,7 +84,7 @@ bool HTTPMgr::ActifCache(bool enabled)
 {
   if (enabled)
   {
-    //Gestion du cache sur base de la version du firmware
+    // Cache management based on firmware version
     char etag[15];
     snprintf(etag, sizeof(etag), "W/\"%d\"", BUILD_DATE);
     if (server.header("If-None-Match") == etag)
@@ -100,7 +100,7 @@ bool HTTPMgr::ActifCache(bool enabled)
   }
   else
   {
-    // Définir les en-têtes HTTP pour désactiver le cache
+    // Set HTTP headers to disable caching
     server.sendHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
     server.sendHeader("Pragma", "no-cache");
     server.sendHeader("Expires", "-1");
@@ -163,15 +163,15 @@ void HTTPMgr::handleFile()
       return;
     }
 
-    const size_t BUFFER_SIZE = 512;  // Ajustez selon votre mémoire disponible
+    const size_t BUFFER_SIZE = 512;  // Adjust according to your available memory
     char buffer[BUFFER_SIZE];
     size_t totalSize = file.size();
 
-    // Configurer l'en-tête pour le streaming
+    // Configure header for streaming
     server.setContentLength(totalSize);
     server.send(200, "application/json", "");
 
-    // Envoyer le fichier par morceaux
+    // Send the file in pieces
     while (file.available())
     {
       size_t bytesRead = file.readBytes(buffer, BUFFER_SIZE);
@@ -208,7 +208,7 @@ void HTTPMgr::ReplyOTA(bool success, const char* error, u_int ref)
 <p>)" LANG_OTASUCCESS4 R"(</p>
 %s</fieldset>)";
 
-  const char* animation = GetAnimWait();  // Supposons que GetAnimWait retourne un char*
+  const char* animation = GetAnimWait();  // Suppose GetAnimWait returns a char*
   snprintf_P(HTMLBufferContent, sizeof(HTMLBufferContent), template_html, (success)? LANG_OTANSUCCESSOK : LANG_OTANSUCCESSNOK, error, ref, GetClientName(), animation);
 
   SendWithHeaderFooter("text/html", HTMLBufferContent, "", true);
@@ -223,7 +223,24 @@ void HTTPMgr::handleRAW()
 void HTTPMgr::handleP1Js()
 {
   if (ActifCache(true)) return;
-  static const char template_html[] PROGMEM = R"(async function updateValues(){try{let e=await fetch("P1.json"),a=await e.json();document.getElementById("LastSample").value=parseDateTime(a.LastSample).toLocaleString(),document.getElementById("T1").value=a.P1.T1+" kWh",document.getElementById("T2").value=a.P1.T2+" kWh",document.getElementById("RT1").value=a.P1.RT1+" kWh",document.getElementById("RT2").value=a.P1.RT2+" kWh",document.getElementById("TA").value=a.P1.TA+" kWh",document.getElementById("RTA").value=a.P1.RTA+" kWh",document.getElementById("VL1").value=a.P1.V.L1+" V",document.getElementById("VL2").value=a.P1.V.L2+" V",document.getElementById("VL3").value=a.P1.V.L3+" V",document.getElementById("AL1").value=a.P1.A.L1+" A",document.getElementById("AL2").value=a.P1.A.L2+" A",document.getElementById("AL3").value=a.P1.A.L3+" A",document.getElementById("gasReceived5min").value=a.P1.gasReceived5min+" m3"}catch(t){console.error("Error on update :",t)}}setInterval(updateValues,1e4),window.onload=updateValues;)";
+  static const char template_html[] PROGMEM = R"(async function updateValues(){
+  try{let e=await fetch("P1.json"),a=await e.json();
+  document.getElementById("LastSample").value=parseDateTime(a.LastSample).toLocaleString(),
+  document.getElementById("T1").value=a.P1.T1+" kWh",
+  document.getElementById("T2").value=a.P1.T2+" kWh",
+  document.getElementById("RT1").value=a.P1.RT1+" kWh",
+  document.getElementById("RT2").value=a.P1.RT2+" kWh",
+  document.getElementById("TA").value=a.P1.TA+" kWh",
+  document.getElementById("RTA").value=a.P1.RTA+" kWh",
+  document.getElementById("VL1").value=a.P1.V.L1+" V",
+  document.getElementById("VL2").value=a.P1.V.L2+" V",
+  document.getElementById("VL3").value=a.P1.V.L3+" V",
+  document.getElementById("AL1").value=a.P1.A.L1+" A",
+  document.getElementById("AL2").value=a.P1.A.L2+" A",
+  document.getElementById("AL3").value=a.P1.A.L3+" A",
+  document.getElementById("gas").value=a.P1.gas+" m3",
+  document.getElementById("water").value=a.P1.water+" m3"
+  }catch(t){console.error("Error on update :",t)}}setInterval(updateValues,1e4),window.onload=updateValues;)";
   server.send(200, "application/javascript", template_html);
 }
 
@@ -336,7 +353,7 @@ void HTTPMgr::handleUploadFlash()
 
     if (UpdateResultFailed)
     {
-      //on a un souci avec cette mise à jour, on ignore l'upload
+      //we have a problem with this update, we ignore the upload
       return;
     }
 
@@ -344,22 +361,22 @@ void HTTPMgr::handleUploadFlash()
     {
       Update.clearError();
       
-      //check size en space
+      //check size in space
       uint32_t maxSketchSpace = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
       MainSendDebugPrintf("[FLASH] Upload of '%s' (%lu octet - free %lu)", upload.filename.c_str(), upload.contentLength, maxSketchSpace);
 
       if (upload.contentLength > maxSketchSpace)
       {
-        UpdateResultFailed = true; // true = erreur d'update
-        UpdateMsg = "Not enough space for update"; // Message d'erreur de la mise à jour
+        UpdateResultFailed = true; // true = update error
+        UpdateMsg = "Not enough space for update"; // Update error message
         UpdateErrorCode = 4;
         return;
       }
 
       if (!Update.begin(maxSketchSpace, U_FLASH))
       {
-        UpdateResultFailed = true; // true = erreur d'update
-        UpdateMsg = Update.getErrorString(); // Message d'erreur de la mise à jour
+        UpdateResultFailed = true; // true = update error
+        UpdateMsg = Update.getErrorString(); // Update error message
         UpdateErrorCode = 0;
         return;
       }
@@ -368,8 +385,8 @@ void HTTPMgr::handleUploadFlash()
     {
       if (Update.write(upload.buf, upload.currentSize) != upload.currentSize)
       {
-        UpdateResultFailed = true; // true = erreur d'update
-        UpdateMsg = Update.getErrorString(); // Message d'erreur de la mise à jour
+        UpdateResultFailed = true; // true = update error
+        UpdateMsg = Update.getErrorString(); // Update error message
         UpdateErrorCode = 1;
         return;
       }
@@ -378,21 +395,21 @@ void HTTPMgr::handleUploadFlash()
     {
       if (Update.end(true)) // true to set the size to the current progress
       {
-        //fin du flash, tout est bon :-)
+        //end of flash, all good :-)
         return;
       }
       else
       {
-        UpdateResultFailed = true; // true = erreur d'update
-        UpdateMsg = Update.getErrorString(); // Message d'erreur de la mise à jour
+        UpdateResultFailed = true; // true = update error
+        UpdateMsg = Update.getErrorString(); // Update error message
         UpdateErrorCode = 1;
         return;
       }
     }
     else if(upload.status == UPLOAD_FILE_ABORTED)
     {
-        UpdateResultFailed = true; // true = erreur d'update
-        UpdateMsg = "Update was aborted"; // Message d'erreur de la mise à jour
+        UpdateResultFailed = true; // true = update error
+        UpdateMsg = "Update was aborted"; // Update error message
         UpdateErrorCode = 3;
         return;
     }
@@ -402,8 +419,7 @@ void HTTPMgr::handleUploadFlash()
 
 void HTTPMgr::handleFactoryReset()
 {
-  if (!ChekifAsAdmin())
-  {
+  if (!ChekifAsAdmin()) {
     return;
   }
 
@@ -422,19 +438,15 @@ void HTTPMgr::handleFactoryReset()
 
 void HTTPMgr::handlePassword()
 {
-  if (!conf.NeedConfig) // if need config, don't ask password
-  {
-    if (!ChekifAsAdmin())
-    {
+  if (!conf.NeedConfig) { // if need config, don't ask password
+    if (!ChekifAsAdmin()) {
       return;
     }
   }
 
   // Is the new password ?
-  if (server.method() == HTTP_POST && server.hasArg("psd1") && server.hasArg("psd2"))
-  {
-    if (server.arg("psd1") == server.arg("psd2"))
-    {
+  if ((server.method() == HTTP_POST) && server.hasArg("psd1") && server.hasArg("psd2")) {
+    if (server.arg("psd1") == server.arg("psd2")) {
       conf.NeedConfig = false;
       server.arg("psd1").toCharArray(conf.adminPassword, sizeof(conf.adminPassword));
       server.arg("adminUser").toCharArray(conf.adminUser, sizeof(conf.adminUser));
@@ -472,8 +484,7 @@ static const char template_html[] PROGMEM = R"(
 
 void HTTPMgr::handleSetup()
 {
-  if (!ChekifAsAdmin())
-  {
+  if (!ChekifAsAdmin()) {
     return;
   }
 
@@ -540,13 +551,11 @@ static const char template_html[] PROGMEM = R"(
 
 void HTTPMgr::handleSetupSave()
 {
-  if (!ChekifAsAdmin())
-  {
+  if (!ChekifAsAdmin()) {
     return;
   }
 
-  if (server.method() == HTTP_POST)
-  {
+  if (server.method() == HTTP_POST) {
     settings NewConf;
     NewConf.NeedConfig = false;
     strcpy(NewConf.adminPassword, conf.adminPassword);
@@ -621,7 +630,8 @@ void HTTPMgr::handleP1()
 <div class="row"><label for="AL1">)" LANG_DATAAL1 R"(</label><input type="text" class="c6" id="AL1"/></div>
 <div class="row"><label for="AL2">)" LANG_DATAAL2 R"(</label><input type="text" class="c6" id="AL2"/></div>
 <div class="row"><label for="AL3">)" LANG_DATAAL3 R"(</label><input type="text" class="c6" id="AL3"/></div>
-<div class="row"><label for="gasReceived5min">)" LANG_DATAGFull R"(</label><input type="text" class="c6" id="gasReceived5min"/></div>
+<div class="row"><label for="gas">)" LANG_DATAGFull R"(</label><input type="text" class="c6" id="gas"/></div>
+<div class="row"><label for="water">)" LANG_DATAWFull R"(</label><input type="text" class="c6" id="water"/></div>
 </fieldset>
 <a href="/P1.json" class="bt">)" LANG_SHOWJSON R"(</a>
 <a href="/raw" class="bt">)" LANG_SHOWRAW R"(</a>
@@ -638,8 +648,7 @@ void HTTPMgr::handleJSONStatus()
   doc["P1"]["LastSample"] = P1Captor.DataReaded.P1timestamp;
   doc["P1"]["Interval"] = conf.interval;
   doc["P1"]["NextUpdateIn"] = P1Captor.GetnextUpdateTime()-millis();
-  if (conf.mqtt)
-  {
+  if (conf.mqtt) {
     doc["MQTT"] = MQTT.IsConnected();
   }
 
@@ -653,21 +662,22 @@ void HTTPMgr::handleJSON()
 {
   char str[1000];
   JsonDocument doc;
-  doc["LastSample"] = P1Captor.DataReaded.P1timestamp;
-  doc["NextUpdateIn"] = P1Captor.GetnextUpdateTime()-millis();
-  doc["P1"]["T1"] = P1Captor.DataReaded.electricityUsedTariff1.val();
-  doc["P1"]["T2"] = P1Captor.DataReaded.electricityUsedTariff2.val();
-  doc["P1"]["RT1"] = P1Captor.DataReaded.electricityReturnedTariff1.val();
-  doc["P1"]["RT2"] = P1Captor.DataReaded.electricityReturnedTariff2.val();
-  doc["P1"]["TA"] = P1Captor.DataReaded.actualElectricityPowerDeli.val();
-  doc["P1"]["RTA"] = P1Captor.DataReaded.actualElectricityPowerRet.val();
+  doc["LastSample"]    = P1Captor.DataReaded.P1timestamp;
+  doc["NextUpdateIn"]  = P1Captor.GetnextUpdateTime()-millis();
+  doc["P1"]["T1"]      = P1Captor.DataReaded.electricityUsedTariff1.val();
+  doc["P1"]["T2"]      = P1Captor.DataReaded.electricityUsedTariff2.val();
+  doc["P1"]["RT1"]     = P1Captor.DataReaded.electricityReturnedTariff1.val();
+  doc["P1"]["RT2"]     = P1Captor.DataReaded.electricityReturnedTariff2.val();
+  doc["P1"]["TA"]      = P1Captor.DataReaded.actualElectricityPowerDeli.val();
+  doc["P1"]["RTA"]     = P1Captor.DataReaded.actualElectricityPowerRet.val();
   doc["P1"]["V"]["L1"] = P1Captor.DataReaded.instantaneousVoltageL1.val();
   doc["P1"]["V"]["L2"] = P1Captor.DataReaded.instantaneousVoltageL2.val();
   doc["P1"]["V"]["L3"] = P1Captor.DataReaded.instantaneousVoltageL3.val();
   doc["P1"]["A"]["L1"] = P1Captor.DataReaded.instantaneousCurrentL1.val();
   doc["P1"]["A"]["L2"] = P1Captor.DataReaded.instantaneousCurrentL2.val();
   doc["P1"]["A"]["L3"] = P1Captor.DataReaded.instantaneousCurrentL3.val();
-  doc["P1"]["gasReceived5min"] = P1Captor.DataReaded.gasReceived5min;
+  doc["P1"]["gas"]     = P1Captor.DataReaded.gasReceived5min.val();
+  doc["P1"]["water"]   = P1Captor.DataReaded.waterReceived5min.val();
 
   serializeJson(doc, str);
 
@@ -679,10 +689,8 @@ void HTTPMgr::handleJSON()
 /// @return true if logged
 bool HTTPMgr::ChekifAsAdmin()
 {
-  if (strlen(conf.adminPassword) != 0)
-  {
-    if (!server.authenticate(conf.adminUser, conf.adminPassword))
-    {
+  if (strlen(conf.adminPassword) != 0) {
+    if (!server.authenticate(conf.adminUser, conf.adminPassword)) {
       server.requestAuthentication();
       return false;
     }
@@ -692,23 +700,21 @@ bool HTTPMgr::ChekifAsAdmin()
 
 char* HTTPMgr::nettoyerInputText(const char* inputText, size_t maxLen)
 {
-  char* result = (char*)malloc(maxLen + 1); // +1 pour le caractère de fin de chaîne
-  if (result == NULL)
-  {
-    // Gestion d'erreur : allocation mémoire échouée
+  char* result = (char*)malloc(maxLen + 1); // +1 for the end of string character
+  if (result == NULL) {
+    // Error handling: memory allocation failed
     return NULL;
   }
 
   strcpy(result, inputText);
 
   char* found = result;
-  while ((found = strchr(found, '\'')) != NULL)
-  {
-    // Décalage de tous les caractères après l'apostrophe
-    memmove(found + 5, found + 1, strlen(found + 1) + 1); // +1 pour le caractère de fin de chaîne
-    // Copie de "&apos;"
+  while ((found = strchr(found, '\'')) != NULL) {
+    // Shift all characters after the apostrophe
+    memmove(found + 5, found + 1, strlen(found + 1) + 1); // +1 for the end of string character
+    // Copy of "&apos;"
     strcpy(found, "&apos;");
-    found += 5; // Passer à la prochaine position
+    found += 5; // Move to next position
   }
 
   return result;
@@ -716,7 +722,7 @@ char* HTTPMgr::nettoyerInputText(const char* inputText, size_t maxLen)
 
 const char* HTTPMgr::GetAnimWait()
 {
-    static const char anim_wait[] PROGMEM = R"(
+  static const char anim_wait[] PROGMEM = R"(
 <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
     <circle cx="50" cy="50" r="40" stroke="#ccc" stroke-width="4" fill="none" />
     <circle cx="50" cy="10" r="6" fill="#007bff"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="1s" repeatCount="indefinite" /></circle>
@@ -725,12 +731,12 @@ const char* HTTPMgr::GetAnimWait()
     <circle cx="10" cy="50" r="6" fill="#007bff"><animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="4s" repeatCount="indefinite" /></circle>
 </svg>)";
 
-    return anim_wait;
+  return anim_wait;
 }
 
 void HTTPMgr::SendWithHeaderFooter(const char *content_type, char *content, const char *header, bool refresh)
 {
-  char buffer[1500];  // Buffer pour header et footer
+  char buffer[1500];  // Buffer for header and footer
   server.setContentLength(CONTENT_LENGTH_UNKNOWN);
   server.send(200, "text/html","");
   static const char template_html_header[] PROGMEM = R"(

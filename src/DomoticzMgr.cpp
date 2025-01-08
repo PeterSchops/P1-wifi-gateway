@@ -39,8 +39,9 @@ void DomoticzMgr::UpdateGas()
   {
     return;
   }
-
-  SendToDomoticz(conf.domoticzGasIdx, 0, P1Captor.DataReaded.gasDomoticz);
+  char sValue[300];
+  sprintf(sValue, "%f", P1Captor.DataReaded.gasReceived5min.val());
+  SendToDomoticz(conf.domoticzGasIdx, 0, sValue);
 }
 
 void DomoticzMgr::UpdateElectricity()

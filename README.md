@@ -1,97 +1,97 @@
 # P1 Wi-Fi Gateway
 
-Firmware pour le module P1 Reader, conçu pour capturer et transmettre des informations de comptage via Wi-Fi. Ce projet facilite l'intégration de données P1 dans des systèmes domotiques tels que Home Assistant et Domoticz.
+Firmware for the P1 Reader module, designed to capture and transmit counting information via Wi-Fi. This project facilitates the integration of P1 data into home automation systems such as Home Assistant and Domoticz.
 
-N'oubliez pas de consulter le Wiki très complet : [Le Wiki](https://github.com/narfight/P1-wifi-gateway/wiki)
+Don't forget to check out the very comprehensive Wiki : [Le Wiki](https://github.com/narfight/P1-wifi-gateway/wiki)
 
-## Table des matières
-- [Fonctionnalités](#fonctionnalités)
+## Table of contents
+- [Features](#Features)
   - [Catpures d'écran](#catpures-d%C3%A9cran)
-- [Achat du module](#Achat-du-module)
-- [Prérequis](#prérequis)
+- [Purchase the module](#Purchase-the-module)
+- [Prerequisites](#Prerequisites)
 - [Installation](#installation)
-- [Configuration du Module](#configuration-du-module)
-- [Utilisation](#utilisation)
+- [Module Configuration](#Module-Configuration)
+- [Use](#Use)
 - [Roadmap](#roadmap)
 - [Contribution](#contribution)
 - [Related](#related)
 - [License](#license)
 
-## Fonctionnalités
+## Features
 
-- **Transmission MQTT** : Envoie les données P1 aux serveurs domotiques via MQTT, compatible avec des plateformes comme Home Assistant et Domoticz.
-- **Configuration via Wi-Fi** : Crée un point d'accès Wi-Fi (SSID : `P1_setup_XXXX`) pour configurer le module, accessible à l’adresse [http://192.168.4.1](http://192.168.4.1).
-- **Support multilingue** : Interface multilingue avec possibilité d'ajouter des langues.
-- **Mise à jour du firmware** : Mise à jour du firmware possible via l’interface web.
-- **Compatibilité internationale** : Initialement conçu pour la Belgique, mais extensible pour d'autres pays sur demande
-- **Intégration** : Compatible avec Home Assistant et Domoticz
-### Catpures d'écran
+- **MQTT transmission** : Sends P1 data to home automation servers via MQTT, compatible with platforms like Home Assistant and Domoticz.
+- **Configuration via Wi-Fi** : Create a Wi-Fi hotspot (SSID : `P1_setup_XXXX`) to configure the module, accessible at the address [http://192.168.4.1](http://192.168.4.1).
+- **Multilingual support** : Multilingual interface with the ability to add languages.
+- **Firmware update** : Firmware update possible via web interface.
+- **International Compatibility** : Initially designed for Belgium, but expandable for other countries on request
+- **Integration** : Compatible with Home Assistant and Domoticz
+### Screenshots
 <img src="https://github.com/user-attachments/assets/ae05256c-f895-4f6a-bbab-7d369eba7c81" width="400"/>
 <img src="https://github.com/user-attachments/assets/3048b403-0873-40e3-9426-1f866c38b29c" width="50%"/>
 <img src="https://github.com/user-attachments/assets/bbeff2c2-e0a4-48f6-986a-942417444dd0" width="400"/>
 <img src="https://github.com/user-attachments/assets/0c39660f-1bcf-4faf-8f9e-087691f3a860" width="50%"/>
 
-## Achat du module
+## Purchase the module
 
-Le module est développé par Ronald Leenes (ronaldleenes@icloud.com) et vous pouvez commander via son email le module de 22€ tout frais compris (en date de 2024).
-Pour plus de détails sur la source du projet : http://www.esp8266thingies.nl/
+The module is developed by Ronald Leenes (ronaldleenes@icloud.com) and you can order the module for €22 all costs included (as of 2024) via his email.
+For more details on the project source : http://www.esp8266thingies.nl/
 
-## Prérequis
+## Prerequisites
 
-Pour compiler et déployer ce projet, vous aurez besoin des éléments suivants :
-- [Visual Studio Code](https://code.visualstudio.com/) avec l’extension PlatformIO.
-- Python 3.x (pour les scripts de compilation avancée).
-- Une connexion au port P1 de votre compteur (souvent pour les compteurs intelligents).
-- [Home Assistant](https://www.home-assistant.io/) ou [Domoticz](https://www.domoticz.com/) pour l’intégration domotique.
+To compile and deploy this project you will need the following :
+- [Visual Studio Code](https://code.visualstudio.com/) with the PlatformIO extension.
+- Python 3.x (for advanced build scripts).
+- A connection to the P1 port of your meter (often for smart meters).
+- [Home Assistant](https://www.home-assistant.io/) on [Domoticz](https://www.domoticz.com/) for home automation integration.
 
 ## Installation
 
-1. **Téléchargement du Firmware** : Téléchargez la dernière version du firmware depuis la section des builds.
-2. **Mise à jour du module** : Utilisez l’interface web du module pour télécharger et flasher le firmware.
-3. **Connexion initiale** : Le module crée un réseau Wi-Fi `P1_setup_XXXX`. Connectez-vous à ce réseau.
-4. **Accès à l'interface** : Accédez à l’interface de configuration via [http://192.168.4.1](http://192.168.4.1).
+1. **Firmware download** : Download the latest firmware version from the builds section.
+2. **Module update** : Use the module's web interface to download and flash the firmware.
+3. **Initial connection** : The module creates a Wi-Fi network `P1_setup_XXXX` Connect to this network.
+4. **Access to the interface** : Access the configuration interface via [http://192.168.4.1](http://192.168.4.1).
 
-## Configuration du Module
+## Module Configuration
 
-1. **Authentification** : Lors de la première connexion, un login et un mot de passe sont demandés. Si les champs sont laissés vides, le module n’aura pas de protection par mot de passe.
-2. **Paramètres réseau** : Configurez les informations du réseau Wi-Fi pour permettre au module de se connecter à Internet.
-3. **Paramètres MQTT** :
-   - **Serveur MQTT** : Indiquez l'adresse de votre serveur MQTT.
-   - **Port** : Par défaut, le port est 1883.
-   - **Identifiants** : Renseignez les identifiants si votre serveur MQTT est protégé.
-4. **Intégration dans Home Assistant ou Domoticz** : Utilisez le fichier de configuration MQTT (`mqtt-P1Meter.yaml`) pour configurer facilement Home Assistant.
+1. **Authentication** : When logging in for the first time, a login and password are requested. If the fields are left empty, the module will not have password protection.
+2. **Network Settings** : Configure the Wi-Fi network information to allow the module to connect to the Internet.
+3. **MQTT settings** :
+   - **MQTT Server** : Enter the address of your MQTT server.
+   - **Port** : By default, the port is 1883.
+   - **Identifiers** : Fill in the credentials if your MQTT server is protected.
+4. **Integration into Home Assistant or Domoticz** : Use the MQTT configuration file (`mqtt-P1Meter.yaml`) to easily configure Home Assistant.
 
-## Utilisation
+## Use
 
-Une fois configuré, le module commencera à envoyer des données de comptage via MQTT. Ces données peuvent inclure :
-- **Consommation électrique en temps réel**.
-- **Historique de consommation** : Le module peut enregistrer des données de consommation pour analyse.
-- **Alertes personnalisées** : Configurez des alertes dans Home Assistant ou Domoticz pour surveiller des seuils de consommation.
+Once configured, the module will start sending counting data via MQTT. This data may include:
+- **Real-time power consumption**.
+- **Consumption history** : The module can record consumption data for analysis.
+- **Custom alerts** : Set up alerts in Home Assistant or Domoticz to monitor consumption thresholds.
 
-### Surveillance et Diagnostics
+### Monitoring and Diagnostics
 
-Le module propose des outils de diagnostic accessibles via l’interface web, où vous pouvez consulter :
-- **Journal des événements** : Suivi des connexions et erreurs.
-- **Informations réseau** : Vérifiez la force du signal Wi-Fi et l’état de la connexion.
-- **Logs MQTT** : Consulter les messages envoyés et reçus via MQTT.
+The module offers diagnostic tools accessible via the web interface, where you can consult:
+- **Event log** : Monitoring connections and errors.
+- **Network information** : Check Wi-Fi signal strength and connection status.
+- **MQTT Logs** : View messages sent and received via MQTT.
 
 ## Roadmap
 
-- **Support multilingue étendu** : Un firmware par langue
-- **Compatibilité internationale** : Adaptation pour une compatibilité plus large en dehors de la Belgique.
+- **Extensive multilingual support** : One firmware per language
+- **International Compatibility** : Adaptation for wider compatibility outside Belgium.
 
 ## Contribution
 
-Les contributions sont les bienvenues ! Veuillez suivre les étapes ci-dessous :
-1. Forkez le projet et clonez-le en local.
-2. Créez une branche pour votre fonctionnalité (`git checkout -b nouvelle-fonctionnalité`).
-3. Effectuez vos modifications et testez-les.
-4. Envoyez une Pull Request pour examen.
+Contributions are welcome! Please follow the steps below:
+1. Fork the project and clone it locally.
+2. Create a branch for your feature (`git checkout -b new-feature`).
+3. Make your changes and test them.
+4. Submit a Pull Request for review.
 
 ## Related
 
-Pour plus d'informations sur le projet matériel et logiciel original : [romix123 sur GitHub](https://github.com/romix123/P1-wifi-gateway)
+For more information about the original hardware and software project: [romix123 on GitHub](https://github.com/romix123/P1-wifi-gateway)
 
 ## License
 
-Ce projet est distribué sous la licence GNU General Public License. Voir [GNU General Public License](http://www.gnu.org/licenses/) pour plus de détails.
+This project is distributed under the GNU General Public License. See [GNU General Public License](http://www.gnu.org/licenses/) for details.
