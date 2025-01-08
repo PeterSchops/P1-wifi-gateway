@@ -95,6 +95,7 @@
 #define LANG_DATAAL2 "Current: L2"
 #define LANG_DATAAL3 "Current: L3"
 #define LANG_DATAGFull "Gas consumption: total"
+#define LANG_DATAWFull "Water consumption: total"
 #define LANG_SHOWJSON "Show JSON"
 #define LANG_SHOWRAW "Show datagram"
 #define LANG_HLPH1 "Help"

@@ -95,6 +95,7 @@
 #define LANG_DATAAL2 "Ampérage: L2"
 #define LANG_DATAAL3 "Ampérage: L3"
 #define LANG_DATAGFull "Consommation de gaz: total"
+#define LANG_DATAWFull "Consommation d'eau: total"
 #define LANG_SHOWJSON "Afficher le Json"
 #define LANG_SHOWRAW "Afficher le datagram"
 #define LANG_HLPH1 "Aide"
