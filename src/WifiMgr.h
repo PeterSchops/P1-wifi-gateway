@@ -34,7 +34,7 @@
 #include "GlobalVar.h"
 #include "Debug.h"
 
-// van ESP8266WiFi/examples/WiFiShutdown/WiFiShutdown.ino
+// from ESP8266WiFi/examples/WiFiShutdown/WiFiShutdown.ino
 #ifndef RTC_config_data_SLOT_WIFI_STATE
 #define RTC_config_data_SLOT_WIFI_STATE 33u
 #endif
