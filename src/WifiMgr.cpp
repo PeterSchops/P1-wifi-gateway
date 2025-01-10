@@ -26,15 +26,14 @@
 
 void WifiMgr::DoMe()
 {
-  if (WiFi.status() != LastStatusEvent)
-  {
+  if (WiFi.status() != LastStatusEvent) {
     wl_status_t tmp = LastStatusEvent;
     LastStatusEvent = WiFi.status();
     
     MainSendDebugPrintf("[WIFI][Connected:%s] Event %s -> %s", (WiFi.isConnected())? "Y" : "N", StatusIdToString(tmp).c_str(), StatusIdToString(LastStatusEvent).c_str());
 
     if (LastStatusEvent == WL_NO_SSID_AVAIL) {
-      Connect(); // on relance les tentatives
+      Connect(); // we restart the connection attempts
       return;
     }
 
@@ -43,9 +42,11 @@ void WifiMgr::DoMe()
       DelegateWifiChange(WiFi.isConnected(), tmp, LastStatusEvent);
     }
   }
+  if (WiFi.status() == WL_CONNECTED) {
+    MDNS.update();
+  }
 
-  if (AsAP() && (millis() - LastScanSSID) > INTERVAL_SCAN_SSID_MS && conf.ssid[0] != '\0')
-  {
+  if (AsAP() && (millis() - LastScanSSID) > INTERVAL_SCAN_SSID_MS && conf.ssid[0] != '\0') {
     LastScanSSID = millis();
     //in AP mode, scan SSIDs to see if it can connect only if an SSID is given
     if (FindThesSSID()) {
@@ -139,8 +140,7 @@ void WifiMgr::OnWifiEvent(std::function<void(bool, wl_status_t, wl_status_t)> Ca
 
 void WifiMgr::Connect()
 {
-  if (strcmp(conf.ssid, "") != 0)
-  {
+  if (strcmp(conf.ssid, "") != 0) {
     // Wifi configured to connect to one wifi
     MainSendDebugPrintf("[WIFI] Connect to '%s'", conf.ssid);
     WiFi.mode(WIFI_STA);
@@ -149,13 +149,11 @@ void WifiMgr::Connect()
     WiFi.begin(conf.ssid, conf.password);
 
     byte tries = 0;
-    while (WiFi.status() != WL_CONNECTED)
-    {
+    while (WiFi.status() != WL_CONNECTED) {
       digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
       Yield_Delay(300);
 
-      if (tries++ > 30)
-      {
+      if (tries++ > 30) {
         SetAPMod();
         break;
       }
@@ -164,11 +162,18 @@ void WifiMgr::Connect()
     // if connected to wifi's user
     if ((WiFi.getMode() == WIFI_STA) && (WiFi.status() == WL_CONNECTED)) {
       WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected &event) {
-        MainSendDebugPrintf("[WIFI] Perte de communication : %s", event.reason);
+        MainSendDebugPrintf("[WIFI] Lost communication : %s", event.reason);
       });
       WiFi.setAutoReconnect(true);
       MainSendDebugPrintf("[WIFI] Running, IP : %s", WiFi.localIP().toString());
       setRFPower();
+
+      if (!MDNS.begin(HOSTNAME)) {
+        MainSendDebugPrintf("[WIFI] Error starting mDNS");
+      } else {
+        MainSendDebugPrintf("[WIFI] HostName : %s", HOSTNAME);
+      }
+
       digitalWrite(LED_BUILTIN, LED_OFF);
     }
   }
@@ -193,6 +198,11 @@ void WifiMgr::Reconnect()
       return;
     }
   }
+  if (!MDNS.begin(HOSTNAME)) {
+    MainSendDebugPrintf("[WIFI] Error starting mDNS");
+  } else {
+    MainSendDebugPrintf("[WIFI] HostName : %s", HOSTNAME);
+  }
 }
 
 bool WifiMgr::IsConnected()
@@ -206,7 +216,7 @@ void WifiMgr::SetAPMod()
 
   WiFi.mode(WIFI_AP);
   WiFi.softAP(GetClientName(), "");
-  MainSendDebugPrintf("[WIFI] Start captive Portal '%s' (IP:%s)", GetClientName(), WiFi.softAPIP().toString().c_str());
+  MainSendDebugPrintf("[WIFI] Start Access Point '%s' (IP:%s)", GetClientName(), WiFi.softAPIP().toString().c_str());
   APtimer = millis();
 }
 
@@ -241,23 +251,23 @@ float WifiMgr::CalcuAdjustWiFiPower()
   int rssi = WiFi.RSSI();
   float newPower;
   
-  // Protection contre les valeurs RSSI invalides
+  // Protection against invalid RSSI values
   if (rssi >= 0) {
     return -1;
   }
   
   if (rssi > -50) {
-    // Signal fort : puissance minimale
+    // Strong signal: minimum power
     newPower = 0;
   }
   else if (rssi < -80) {
-    // Signal faible : puissance maximale
+    // Weak signal: maximum power
     newPower = 20.5;
   }
   else {
-    // Entre -50 et -80 : adaptation linéaire
-    // Convertit -80~-50 en 0~20.5
-    newPower = ((-rssi - 50) * 20.5) / 30;
+    // Between -50 and -80: linear adaptation
+    // Converts -80~-50 to 0~20.5
+    newPower = (static_cast<float>(-rssi - 50) * 20.5) / 30.0;
   }
   
   return newPower;

@@ -68,15 +68,13 @@ void DomoticzMgr::SendToDomoticz(unsigned int idx, int nValue, char* sValue)
   int httpCode = http.GET();
   
   // httpCode will be negative on error
-  if (httpCode > 0)
-  { // HTTP header has been sent and Server response header has been handled
-    if (httpCode == HTTP_CODE_OK)
-    {
+  if (httpCode > 0) { 
+    // HTTP header has been sent and Server response header has been handled
+    if (httpCode == HTTP_CODE_OK) {
       String payload = http.getString();
     }
   }
-  else
-  {
+  else {
     MainSendDebugPrintf("[DMTCZ] GET failed, error: %s", http.errorToString(httpCode).c_str());
   }
   http.end();

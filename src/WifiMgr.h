@@ -31,6 +31,7 @@
 
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
+#include <ESP8266mDNS.h>
 #include "GlobalVar.h"
 #include "Debug.h"
 

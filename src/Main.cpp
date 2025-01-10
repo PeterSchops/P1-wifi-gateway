@@ -126,6 +126,7 @@ void blink(int t, unsigned long speed)
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     delay(speed);
   }
+  digitalWrite(LED_BUILTIN, LED_OFF);
 }
 
 #ifdef DEBUG_SERIAL_P1
